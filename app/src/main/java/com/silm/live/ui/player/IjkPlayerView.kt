@@ -77,34 +77,31 @@ class IjkSurfaceView @JvmOverloads constructor(
             val p = IjkMediaPlayer()
 
             // 硬件解码（修复黑屏的关键配置）
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-hevc", 1)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 1)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 1)
-
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-hevc", 1L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 1L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 1L)
             // 渲染 / 缓冲
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 1)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-buffer-size", 1024 * 1024)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "min-frames", 2)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max_cached_duration", 3000)
-
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32.toLong())
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 1L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "packet-buffering", 0L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-buffer-size", (1024 * 1024).toLong())
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "min-frames", 2L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max_cached_duration", 3000L)
             // 格式 / 网络（直播低延迟）
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzemaxduration", 100)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 1024 * 32)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 5)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rw_timeout", 15_000_000)
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "timeout", 15_000_000)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "analyzemaxduration", 100L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", (1024 * 32).toLong())
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flush_packets", 1L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 5L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "rw_timeout", 15_000_000L)
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "timeout", 15_000_000L)
             p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "nobuffer")
             p.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "flags", "low_delay")
 
             // 解码
-            p.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48)
-
+            p.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48L)
             p.setOnPreparedListener {
                 Log.i(TAG, "ijk prepared: $url")
                 it.start()
