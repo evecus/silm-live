@@ -197,9 +197,9 @@ object SettingsStore {
         context.dataStore.edit { it[KEY_DEFAULT_QUALITY] = value.toString() }
     }
 
-    /** 弹幕字号（sp），默认 14 */
+    /** 弹幕字号（sp），默认 16 */
     fun danmakuTextSp(context: Context): Flow<Int> =
-        context.dataStore.data.map { it[KEY_DANMAKU_TEXT_SP]?.toIntOrNull() ?: 14 }
+        context.dataStore.data.map { it[KEY_DANMAKU_TEXT_SP]?.toIntOrNull() ?: 16 }
 
     suspend fun setDanmakuTextSp(context: Context, sp: Int) {
         context.dataStore.edit { it[KEY_DANMAKU_TEXT_SP] = sp.toString() }

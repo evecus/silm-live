@@ -88,7 +88,7 @@ fun SettingsScreen(
         .collectAsState(initial = PhonePlayOrientation.AUTO.name)
     val hwDecode by SettingsStore.hwDecode(context).collectAsState(initial = true)
     val defaultQuality by SettingsStore.defaultQuality(context).collectAsState(initial = 0)
-    val danmakuTextSp by SettingsStore.danmakuTextSp(context).collectAsState(initial = 14)
+    val danmakuTextSp by SettingsStore.danmakuTextSp(context).collectAsState(initial = 16)
     val danmakuArea by SettingsStore.danmakuArea(context).collectAsState(initial = 25)
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -313,7 +313,7 @@ fun SettingsScreen(
                     Text("弹幕大小", style = bodyStyle)
                     Spacer(Modifier.height(6.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf(12 to "小", 14 to "标准", 16 to "大", 19 to "特大").forEach { (sp, label) ->
+                        listOf(12 to "小", 16 to "标准", 20 to "大", 24 to "特大", 28 to "超大").forEach { (sp, label) ->
                             FilterChip(
                                 selected = danmakuTextSp == sp,
                                 onClick = {

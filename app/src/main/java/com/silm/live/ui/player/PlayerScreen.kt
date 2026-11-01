@@ -104,7 +104,7 @@ fun PlayerScreen(
     var controlsVisible by remember { mutableStateOf(true) }
 
     // ---------- 弹幕设置（字号 / 屏占比） ----------
-    val danmakuTextSp by SettingsStore.danmakuTextSp(context).collectAsState(initial = 14)
+    val danmakuTextSp by SettingsStore.danmakuTextSp(context).collectAsState(initial = 16)
     val danmakuArea by SettingsStore.danmakuArea(context).collectAsState(initial = 25)
 
     // 弹幕状态一次性提示：仅在状态到达终态（已连接/连接失败）时提示一次
