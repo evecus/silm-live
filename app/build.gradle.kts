@@ -107,7 +107,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // mpv 内核 (libmpv for Android, 含完整 FFmpeg + 各 ABI 的 so; 实际打进 APK 的架构由上面的 abiFilters 决定)
-    implementation("dev.jdtech.mpv:libmpv:1.0.0")
+    implementation("dev.jdtech.mpv:libmpv:0.5.1")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.brotli:dec:0.1.2")
