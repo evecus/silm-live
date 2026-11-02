@@ -18,7 +18,7 @@ android {
 
     defaultConfig {
         applicationId = "com.silm.live"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 114
         versionName = "1.1.4"
