@@ -12,12 +12,11 @@
 # Brotli
 -dontwarn org.brotli.**
 
-# IjkPlayer / GSY native
--keep class tv.danmaku.ijk.media.player.** { *; }
--keep class tv.danmaku.ijk.media.player.IjkMediaPlayer { *; }
--keep class tv.danmaku.ijk.media.player.pragma.** { *; }
--keepclassmembers class tv.danmaku.ijk.media.player.** { native <methods>; }
--dontwarn tv.danmaku.ijk.**
+# libmpv (JNI 按类名/方法名绑定, 事件观察者用动态代理, 都不能被混淆或裁剪)
+-keep class dev.jdtech.mpv.** { *; }
+-keep class is.xyz.mpv.** { *; }
+-keepclassmembers class dev.jdtech.mpv.** { native <methods>; }
+-dontwarn dev.jdtech.mpv.**
 
 # Coil
 -dontwarn coil.**

@@ -5,7 +5,7 @@ plugins {
 }
 
 // 可通过 -Pabi=arm64-v8a 或 -Pabi=armeabi-v7a 覆盖；默认仅 arm64。
-// 与下方 ijk so 依赖共用同一列表。
+// 只打包所选架构的 so (libmpv 的 AAR 含全部架构, 体积较大, 务必只选需要的).
 val abiList: List<String> = (findProperty("abi") as String?)
     ?.split(",")
     ?.map { it.trim() }
@@ -106,11 +106,8 @@ dependencies {
 
     implementation("io.coil-kt:coil-compose:2.7.0")
 
-    // IjkPlayer (GSY)：按 ABI 条件引入 so，避免打进多余架构
-    implementation("io.github.carguo:gsyijkjava:1.0.0")
-    if (abiList.contains("arm64-v8a")) implementation("io.github.carguo:gsyvideoplayer-arm64:14.0.0")
-    if (abiList.contains("armeabi-v7a")) implementation("io.github.carguo:gsyvideoplayer-armv7a:14.0.0")
-    if (abiList.contains("x86_64")) implementation("io.github.carguo:gsyvideoplayer-x64:14.0.0")
+    // mpv 内核 (libmpv for Android, 含完整 FFmpeg + 各 ABI 的 so; 实际打进 APK 的架构由上面的 abiFilters 决定)
+    implementation("dev.jdtech.mpv:libmpv:1.0.0")
 
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.brotli:dec:0.1.2")

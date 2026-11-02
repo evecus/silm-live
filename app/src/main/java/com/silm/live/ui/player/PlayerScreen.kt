@@ -141,7 +141,7 @@ fun PlayerScreen(
     val orientationName by SettingsStore.phoneOrientation(context)
         .collectAsState(initial = PhonePlayOrientation.AUTO.name)
     val phoneOrientation = PhonePlayOrientation.fromName(orientationName)
-    // 视频是否为竖屏（由 ijK 回调）；AUTO 模式下据此切换屏幕方向，null 表示尚未收到尺寸
+    // 视频是否为竖屏（由播放器回调）；AUTO 模式下据此切换屏幕方向，null 表示尚未收到尺寸
     var videoIsPortrait by remember { mutableStateOf<Boolean?>(null) }
 
     DisposableEffect(layout, phoneOrientation, videoIsPortrait) {
@@ -180,7 +180,7 @@ fun PlayerScreen(
         controlsVisible = !controlsVisible
     }
 
-    // 当前地址与请求头（全部线路统一由 ijk 内核播放：HLS/FLV/RTMP 均支持）
+    // 当前地址与请求头（全部线路统一由 mpv 内核播放：HLS/FLV/RTMP 均支持）
     val currentPair = viewModel.currentUrl()
     val currentUrl = currentPair?.first ?: ""
     val currentHeaders = currentPair?.second ?: emptyMap()
@@ -228,7 +228,7 @@ fun PlayerScreen(
     ) {
         // 视频层（内部按原始比例 letterbox，不填充屏幕）
         if (currentUrl.isNotEmpty()) {
-            IjkPlayer(
+            MpvPlayer(
                 url = currentUrl,
                 headers = currentHeaders,
                 onError = onPlayError,
