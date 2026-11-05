@@ -45,7 +45,7 @@ jobs:
       - name: Move and rename APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/release/*.apk out/slim-live-release.apk
+          cp app/build/outputs/apk/release/*.apk out/silm-live-release.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
