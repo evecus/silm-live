@@ -108,7 +108,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // QuickJS 引擎：执行抖音 a_bogus / MSSDK / 斗鱼签名脚本（对齐 Flutter dart_quickjs 机制）
-    implementation("io.github.dokar3:quickjs-kt:1.0.0-alpha13")
+    implementation("io.github.dokar3:quickjs-kt:1.0.17")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 }
