@@ -109,7 +109,7 @@ fun DanmakuOverlay(
             val trackCount = max(1, (areaHeight / trackHeight).toInt())
             val canvasWidth = size.width
             // 同一轨道上弹幕速度相同，只要入场时前一条的尾部已让出间隙就不会重叠
-            val gap = 15.dp.toPx()
+            val gap = 23.dp.toPx()
             val nowNs = System.nanoTime()
             // 每条轨道当前最靠右的弹幕尾部位置（无弹幕为负无穷）
             val tailOfTrack = FloatArray(trackCount) { Float.NEGATIVE_INFINITY }
