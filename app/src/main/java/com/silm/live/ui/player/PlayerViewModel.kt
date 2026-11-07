@@ -159,7 +159,9 @@ class PlayerViewModel(
                 // 按设置的默认清晰度档位选择（0=最高 1=较高 2=中等 3=较低 4=最低）
                 val pref = SettingsStore.defaultQuality(appContext).first()
                 val sortedDesc = qualities.sortedByDescending { it.sort }
-                val idx = pref.coerceIn(0, sortedDesc.size - 1)
+                // 5 个档位按比例映射到实际画质数量：最高=第1个，最低=最后1个，中间按比例取
+                val last = (sortedDesc.size - 1).coerceAtLeast(0)
+                val idx = Math.round(pref.coerceIn(0, 4) / 4f * last).coerceIn(0, last)
                 android.util.Log.i(TAG, "清晰度档位=$pref/${sortedDesc.size} 选择=${sortedDesc.getOrNull(idx)?.quality}")
                 sortedDesc.getOrNull(idx)?.let { selectQuality(it) }
             } catch (e: Exception) {

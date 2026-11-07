@@ -55,12 +55,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.silm.live.core.SiteManager
@@ -107,6 +109,23 @@ fun FollowScreen(
     val follows by viewModel.sorted.collectAsState()
     val liveStatus by viewModel.liveStatus.collectAsState()
     val refreshing by viewModel.refreshing.collectAsState()
+
+    // 进入关注页：开关开启时才自动请求开播状态（每个 ViewModel 只做一次）
+    LaunchedEffect(Unit) { viewModel.refreshOnEnter() }
+
+    // 定时刷新：开关开启且间隔 > 0 时，仅在关注页可见（RESUMED）期间运行
+    val autoRefresh by SettingsStore.followAutoRefresh(LocalContext.current).collectAsState(initial = true)
+    val refreshMinutes by SettingsStore.followRefreshMinutes(LocalContext.current).collectAsState(initial = 15)
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    LaunchedEffect(autoRefresh, refreshMinutes, lifecycleOwner) {
+        if (!autoRefresh || refreshMinutes <= 0) return@LaunchedEffect
+        lifecycleOwner.lifecycle.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.RESUMED) {
+            while (true) {
+                kotlinx.coroutines.delay(refreshMinutes * 60_000L)
+                viewModel.refresh()
+            }
+        }
+    }
 
     // null = 全部，否则为平台 id
     var filter by remember { mutableStateOf<String?>(null) }
@@ -209,6 +228,20 @@ fun FollowScreen(
         }
     } else {
         // 平板 / TV：左侧固定栏
+        // TV 侧边栏按显示顺序显式串联上下焦点（平台标签 → 搜索 → 设置 → 刷新），
+        // 不依赖 Compose 的几何位置搜索，避免与右侧网格错位时某个按钮按下键无法下移。
+        val searchFocus = remember { FocusRequester() }
+        val refreshFocus = remember { FocusRequester() }
+        val tabFocus = remember(tabs.size) { List(tabs.size) { FocusRequester() } }
+        val sideOrder = remember(tabFocus) { tabFocus + searchFocus + settingsFocus + refreshFocus }
+        fun sideNav(i: Int): Modifier =
+            if (!isTv) Modifier
+            else Modifier
+                .focusProperties {
+                    if (i > 0) up = sideOrder[i - 1]
+                    if (i < sideOrder.lastIndex) down = sideOrder[i + 1]
+                }
+                .focusRequester(sideOrder[i])
         Row(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
@@ -232,13 +265,14 @@ fun FollowScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    tabs.forEach { tab ->
+                    tabs.forEachIndexed { tabIndex, tab ->
                         val selected = filter == tab.platformId
                         var focused by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
+                                .then(sideNav(tabIndex))
                                 .focusClickable(isTv, 10.dp, onFocused = { focused = it }) { filter = tab.platformId }
                                 .background(
                                     // 焦点时底色透明, 让 tvFocusHighlight 的深灰底可见;
@@ -271,6 +305,7 @@ fun FollowScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
+                        .then(sideNav(tabs.size))
                         .focusClickable(isTv, 10.dp) { onOpenSearch() }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -291,6 +326,7 @@ fun FollowScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
+                        .then(sideNav(tabs.size + 1))
                         .focusClickable(isTv, 10.dp) { onOpenSettings() }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -311,6 +347,7 @@ fun FollowScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
+                        .then(sideNav(tabs.size + 2))
                         .focusClickable(isTv, 10.dp) { viewModel.refresh() }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically

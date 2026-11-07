@@ -158,6 +158,8 @@ object SettingsStore {
     private val KEY_PHONE_ORIENTATION = stringPreferencesKey("phone_play_orientation")
     private val KEY_HW_DECODE = stringPreferencesKey("hw_decode")
     private val KEY_DEFAULT_QUALITY = stringPreferencesKey("default_quality")
+    private val KEY_FOLLOW_AUTO_REFRESH = stringPreferencesKey("follow_auto_refresh")
+    private val KEY_FOLLOW_REFRESH_MINUTES = stringPreferencesKey("follow_refresh_minutes")
     private val KEY_DANMAKU_TEXT_SP = stringPreferencesKey("danmaku_text_sp")
     private val KEY_DANMAKU_AREA = stringPreferencesKey("danmaku_area_percent")
     private val KEY_PLATFORM_ORDER = stringPreferencesKey("platform_order")
@@ -267,6 +269,22 @@ object SettingsStore {
 
     suspend fun setDefaultQuality(context: Context, value: Int) {
         context.dataStore.edit { it[KEY_DEFAULT_QUALITY] = value.toString() }
+    }
+
+    /** 关注页自动刷新开关：开启时进入关注页自动请求开播状态，并按间隔定时刷新；默认开启 */
+    fun followAutoRefresh(context: Context): Flow<Boolean> =
+        context.dataStore.data.map { (it[KEY_FOLLOW_AUTO_REFRESH] ?: "true") == "true" }
+
+    suspend fun setFollowAutoRefresh(context: Context, enabled: Boolean) {
+        context.dataStore.edit { it[KEY_FOLLOW_AUTO_REFRESH] = enabled.toString() }
+    }
+
+    /** 关注列表自动刷新间隔（分钟）：0=关闭，5/10/15/30，默认 15 */
+    fun followRefreshMinutes(context: Context): Flow<Int> =
+        context.dataStore.data.map { it[KEY_FOLLOW_REFRESH_MINUTES]?.toIntOrNull() ?: 15 }
+
+    suspend fun setFollowRefreshMinutes(context: Context, minutes: Int) {
+        context.dataStore.edit { it[KEY_FOLLOW_REFRESH_MINUTES] = minutes.toString() }
     }
 
     /** 弹幕字号（sp），默认 16 */

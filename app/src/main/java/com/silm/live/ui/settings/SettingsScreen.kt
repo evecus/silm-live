@@ -7,6 +7,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -67,6 +69,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     layout: AppLayout,
@@ -93,6 +96,8 @@ fun SettingsScreen(
         .collectAsState(initial = PhonePlayOrientation.AUTO.name)
     val hwDecode by SettingsStore.hwDecode(context).collectAsState(initial = true)
     val defaultQuality by SettingsStore.defaultQuality(context).collectAsState(initial = 0)
+    val followAutoRefresh by SettingsStore.followAutoRefresh(context).collectAsState(initial = true)
+    val followRefreshMinutes by SettingsStore.followRefreshMinutes(context).collectAsState(initial = 15)
     val danmakuTextSp by SettingsStore.danmakuTextSp(context).collectAsState(initial = 16)
     val danmakuArea by SettingsStore.danmakuArea(context).collectAsState(initial = 25)
     val platformOrder by SettingsStore.platformOrder(context)
@@ -269,6 +274,67 @@ fun SettingsScreen(
                 }
             }
 
+            // ---------- 关注列表自动刷新 ----------
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("关注页自动刷新", style = titleStyle)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "开启后进入关注页会自动请求开播状态；关闭则不自动请求，需手动点刷新按钮",
+                        style = bodyStyle,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        FilterChip(
+                            selected = followAutoRefresh,
+                            onClick = { scope.launch { SettingsStore.setFollowAutoRefresh(context, true) } },
+                            label = { Text("开启", style = chipStyle) },
+                            modifier = Modifier.tvFocusHighlight(isTv, cornerRadius = 8.dp)
+                        )
+                        FilterChip(
+                            selected = !followAutoRefresh,
+                            onClick = { scope.launch { SettingsStore.setFollowAutoRefresh(context, false) } },
+                            label = { Text("关闭", style = chipStyle) },
+                            modifier = Modifier.tvFocusHighlight(isTv, cornerRadius = 8.dp)
+                        )
+                    }
+                    if (followAutoRefresh) {
+                        Spacer(Modifier.height(12.dp))
+                        Text("刷新间隔", style = bodyStyle)
+                        Text(
+                            "在关注页停留期间，按间隔定时刷新开播状态",
+                            style = bodyStyle,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            listOf(0 to "关闭", 5 to "5分钟", 10 to "10分钟", 15 to "15分钟", 30 to "30分钟")
+                                .forEach { (min, label) ->
+                                    FilterChip(
+                                        selected = followRefreshMinutes == min,
+                                        onClick = {
+                                            scope.launch { SettingsStore.setFollowRefreshMinutes(context, min) }
+                                        },
+                                        label = { Text(label, style = chipStyle) },
+                                        modifier = Modifier.tvFocusHighlight(isTv, cornerRadius = 8.dp)
+                                    )
+                                }
+                        }
+                    }
+                }
+            }
+
             // ---------- 默认清晰度 ----------
             Card(
                 modifier = Modifier
@@ -279,12 +345,15 @@ fun SettingsScreen(
                     Text("默认清晰度", style = titleStyle)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "进入直播间时默认选择的画质档位（按各平台从高到低排序取对应位置）",
+                        "进入直播间时默认选择的画质档位（把该平台全部可选画质从高到低排列，按档位比例取对应位置；该平台档位不足时自动取最接近的一档）",
                         style = bodyStyle,
                         color = MaterialTheme.colorScheme.outline
                     )
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         listOf("最高", "较高", "中等", "较低", "最低").forEachIndexed { idx, label ->
                             FilterChip(
                                 selected = defaultQuality == idx,
@@ -387,7 +456,10 @@ fun SettingsScreen(
                     Spacer(Modifier.height(8.dp))
                     Text("弹幕大小", style = bodyStyle)
                     Spacer(Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         listOf(12 to "小", 16 to "标准", 20 to "大", 24 to "特大", 28 to "超大").forEach { (sp, label) ->
                             FilterChip(
                                 selected = danmakuTextSp == sp,
@@ -402,7 +474,10 @@ fun SettingsScreen(
                     Spacer(Modifier.height(10.dp))
                     Text("弹幕屏占比", style = bodyStyle)
                     Spacer(Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         listOf(10, 25, 50, 75, 100).forEach { pct ->
                             FilterChip(
                                 selected = danmakuArea == pct,

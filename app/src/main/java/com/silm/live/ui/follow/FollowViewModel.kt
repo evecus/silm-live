@@ -8,6 +8,8 @@ import com.silm.live.core.LiveRoomDetail
 import com.silm.live.core.SiteManager
 import com.silm.live.data.FollowItem
 import com.silm.live.data.FollowStore
+import com.silm.live.data.SettingsStore
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -34,7 +36,17 @@ class FollowViewModel(private val appContext: Context) : ViewModel() {
                 _sorted.value = list
             }
         }
-        refresh()
+    }
+
+    private var enterRefreshDone = false
+
+    /** 进入关注页时调用：仅在「自动刷新」开关开启、且本 ViewModel 尚未做过进入刷新时请求一次开播状态 */
+    fun refreshOnEnter() {
+        if (enterRefreshDone) return
+        enterRefreshDone = true
+        viewModelScope.launch {
+            if (SettingsStore.followAutoRefresh(appContext).first()) refresh()
+        }
     }
 
     fun refresh() {
