@@ -55,7 +55,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.composed
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -231,22 +235,37 @@ fun FollowScreen(
         // TV 侧边栏按显示顺序显式串联上下焦点（平台标签 → 搜索 → 设置 → 刷新），
         // 不依赖 Compose 的几何位置搜索，避免与右侧网格错位时某个按钮按下键无法下移。
         val searchFocus = remember { FocusRequester() }
+        val sideSettingsFocus = remember { FocusRequester() }
         val refreshFocus = remember { FocusRequester() }
         val tabFocus = remember(tabs.size) { List(tabs.size) { FocusRequester() } }
-        val sideOrder = remember(tabFocus) { tabFocus + searchFocus + settingsFocus + refreshFocus }
+        val sideOrder = remember(tabFocus) { tabFocus + searchFocus + sideSettingsFocus + refreshFocus }
+        // 当前获得焦点的侧边栏条目序号（-1 = 焦点不在侧边栏）
+        var sideIndex by remember { mutableStateOf(-1) }
         fun sideNav(i: Int): Modifier =
-            if (!isTv) Modifier
-            else Modifier
-                .focusProperties {
-                    if (i > 0) up = sideOrder[i - 1]
-                    if (i < sideOrder.lastIndex) down = sideOrder[i + 1]
-                }
-                .focusRequester(sideOrder[i])
+            if (!isTv) Modifier else Modifier.focusRequester(sideOrder[i])
+        fun sideFocused(i: Int): (Boolean) -> Unit = { f ->
+            if (f) sideIndex = i else if (sideIndex == i) sideIndex = -1
+        }
         Row(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(if (isTv) 250.dp else 180.dp)
+                    .then(
+                        if (!isTv) Modifier else Modifier.onPreviewKeyEvent { ev ->
+                            // TV 侧边栏上下键：直接按显示顺序移动焦点，不走 Compose 的位置搜索
+                            if (ev.type != KeyEventType.KeyDown || sideIndex < 0) return@onPreviewKeyEvent false
+                            val target = when (ev.key) {
+                                Key.DirectionDown -> sideIndex + 1
+                                Key.DirectionUp -> sideIndex - 1
+                                else -> return@onPreviewKeyEvent false
+                            }
+                            if (target in sideOrder.indices) {
+                                runCatching { sideOrder[target].requestFocus() }
+                                true
+                            } else false
+                        }
+                    )
                     .windowInsetsPadding(WindowInsets.statusBars)
                     .padding(horizontal = 12.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
@@ -273,7 +292,10 @@ fun FollowScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(10.dp))
                                 .then(sideNav(tabIndex))
-                                .focusClickable(isTv, 10.dp, onFocused = { focused = it }) { filter = tab.platformId }
+                                .focusClickable(isTv, 10.dp, onFocused = {
+                                    focused = it
+                                    sideFocused(tabIndex)(it)
+                                }) { filter = tab.platformId }
                                 .background(
                                     // 焦点时底色透明, 让 tvFocusHighlight 的深灰底可见;
                                     // 选中(未聚焦) = 白底黑字 (对照 ubox TvButton), 不再用蓝色 primaryContainer
@@ -306,7 +328,7 @@ fun FollowScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .then(sideNav(tabs.size))
-                        .focusClickable(isTv, 10.dp) { onOpenSearch() }
+                        .focusClickable(isTv, 10.dp, onFocused = sideFocused(tabs.size)) { onOpenSearch() }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -327,7 +349,7 @@ fun FollowScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .then(sideNav(tabs.size + 1))
-                        .focusClickable(isTv, 10.dp) { onOpenSettings() }
+                        .focusClickable(isTv, 10.dp, onFocused = sideFocused(tabs.size + 1)) { onOpenSettings() }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -348,7 +370,7 @@ fun FollowScreen(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp))
                         .then(sideNav(tabs.size + 2))
-                        .focusClickable(isTv, 10.dp) { viewModel.refresh() }
+                        .focusClickable(isTv, 10.dp, onFocused = sideFocused(tabs.size + 2)) { viewModel.refresh() }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
